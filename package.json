@@ -1,0 +1,16 @@
+{
+  "name": "elemental",
+  "description": "Quickly audit every element on a page.",
+  "author": "Alexander Ose <alex@alexose.com>",
+  "engine": "node >= 0.10.17",
+  "version": "0.0.0",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:alexose/elemental.git"
+  },
+  "dependencies": {
+    "mongodb": "^1.4.5",
+    "spooky": "^0.2.4"
+  }
+}
