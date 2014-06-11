@@ -45,14 +45,29 @@ function init(db){
             spooky.start(url);
 
             spooky.then(function(){
-                this.emit('size', this.evaluate(function(){
+                this.emit('size', this.evaluate(subdivide));
+
+                // Breaks a document down into pieces and returns a list of selectors
+                function subdivide(){
                     var elements = $('div');
+
+                    elements.each(function(d, i){
+                        var str = 'data-temporary-index';
+                        $(this).attr(str, i);
+                    });
+
                     return elements.size();
-                }));
+                }
+
+                return;
             });
 
             spooky.run();
         });
+
+    spooky.on('console', function (line) {
+        console.log(line);
+    });
 
     spooky.on('error', function(e, stack){
         console.error(e);
@@ -62,8 +77,27 @@ function init(db){
         }
     });
 
-    spooky.on('size', function (size) {
-        console.log(size);
-        process.exit();
+    spooky.on('size', function(size){
+
+        // Record screenshots of each element
+        for (var i=1; i<50; i++){
+            console.log('capturing element ' + i);
+
+            // Strange example of function tuple via:
+            // https://github.com/WaterfallEngineering/SpookyJS/issues/22
+            this.then([{ i : i }, function(){
+                //this.capture('lol.png');
+                //this.captureSelector('element-' + i + '.png', '[data-temporary-index=' + i + ']');
+                this.captureSelector('output/element-' + i + '.png', 'div:nth-of-type(' + i + ')');
+            }]);
+            console.log(size);
+        }
+
     });
 }
+
+var minimum = {
+    width:  20,
+    height: 20
+}
+
