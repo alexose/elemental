@@ -1,103 +1,116 @@
-var mongodb = require('mongodb'),
-    Spooky = require('spooky');
+var mongodb = require('mongodb')
+  , Spooky = require('spooky');
 
 var args = process.argv || [];
 
 if (args.length < 3 || args.length > 4){
-   console.log('Usage: ' + args[0] + ' <url>');
-   process.exit();
+  console.log('Usage: ' + args[0] + ' <url>');
+  process.exit();
 }
 
 var url = args[2];
 
 // Attempt to connect to Mongo
 mongodb.MongoClient.connect('mongodb://127.0.0.1:27017/elemental', function(err, db){
-    if (err) {
-        e = new Error('Failed to initialize Mongo');
-        e.details = err;
-        throw e;
-    } else {
-        init(db);
-    }
+  if (err) {
+    e = new Error('Failed to initialize Mongo');
+    e.details = err;
+    throw e;
+  } else {
+    init(db);
+  }
 });
 
 function init(db){
 
-    // Fire up Spooky
+  // Attempt to Fire up Spooky
+  try {
     var spooky = new Spooky({
-            child: {
-                transport: 'http'
-            },
-            casper: {
-                logLevel: 'debug',
-                verbose: true,
-                options: {
-                    clientScripts: ['jquery.min.js']
-                }
-            }
-        }, function(err){
-            if (err) {
-                e = new Error('Failed to initialize SpookyJS');
-                e.details = err;
-                throw e;
-            }
+        child: {
+          transport: 'http'
+        },
+        casper: {
+          logLevel: 'debug',
+          verbose: true,
+          options: {
+            clientScripts: ['jquery.min.js']
+          }
+        }
+      }, function(err, spooky){
+        if (err) {
+          display(err);
+        }
 
-            spooky.start(url);
+        crawl(spooky);
+      });
+  } catch(e){
+    console.log('hello');
+    display(e);
+  }
 
-            spooky.then(function(){
-                this.emit('size', this.evaluate(subdivide));
+  function display(err){
+    e = new Error('Failed to initialize SpookyJS');
+    e.details = err;
+    throw e;
+  }
 
-                // Breaks a document down into pieces and returns a list of selectors
-                function subdivide(){
-                    var elements = $('div');
+}
 
-                    elements.each(function(d, i){
-                        var str = 'data-temporary-index';
-                        $(this).attr(str, i);
-                    });
+function crawl(spooky){
 
-                    return elements.size();
-                }
+  spooky.start(url);
 
-                return;
+      spooky.then(function(){
+          this.emit('size', this.evaluate(subdivide));
+
+          // Breaks a document down into pieces and returns a list of selectors
+          function subdivide(){
+          var elements = $('div');
+
+          elements.each(function(d, i){
+            var str = 'data-temporary-index';
+            $(this).attr(str, i);
             });
 
-            spooky.run();
-        });
+          return elements.size();
+          }
 
-    spooky.on('console', function (line) {
-        console.log(line);
-    });
+          return;
+          });
 
-    spooky.on('error', function(e, stack){
-        console.error(e);
+  spooky.run();
 
-        if (stack) {
-            console.log(stack);
-        }
-    });
+  spooky.on('console', function (line) {
+      console.log(line);
+      });
 
-    spooky.on('size', function(size){
+  spooky.on('error', function(e, stack){
+      console.error(e);
 
-        // Record screenshots of each element
-        for (var i=1; i<50; i++){
-            console.log('capturing element ' + i);
+      if (stack) {
+      console.log(stack);
+      }
+      });
 
-            // Strange example of function tuple via:
-            // https://github.com/WaterfallEngineering/SpookyJS/issues/22
-            this.then([{ i : i }, function(){
-                //this.capture('lol.png');
-                //this.captureSelector('element-' + i + '.png', '[data-temporary-index=' + i + ']');
-                this.captureSelector('output/element-' + i + '.png', 'div:nth-of-type(' + i + ')');
-            }]);
-            console.log(size);
-        }
+  spooky.on('size', function(size){
 
-    });
+    // Record screenshots of each element
+    for (var i=1; i<50; i++){
+      console.log('capturing element ' + i);
+
+      // Strange example of function tuple via:
+      // https://github.com/WaterfallEngineering/SpookyJS/issues/22
+      this.then([{ i : i }, function(){
+      }]);
+
+      console.log(size);
+
+    }
+
+    function capture(){
+      //this.capture('lol.png');
+      //this.captureSelector('element-' + i + '.png', '[data-temporary-index=' + i + ']');
+      this.captureSelector('output/element-' + i + '.png', 'div:nth-of-type(' + i + ')');
+    }
+  });
 }
-
-var minimum = {
-    width:  20,
-    height: 20
-}
-
