@@ -80,18 +80,16 @@ function crawl(spooky){
 
   spooky.on('coords', function(coords){
 
-    var json = JSON.stringify(coords);
+    spooky.start();
 
-    spooky.then(function(){
-
-    });
-
-    spooky.then([{ coords : coords }, function(){
-
+    spooky.then([{ coords: coords }, function(){
       for (var i in coords){
         spooky.capture('output/image-' + i + '.png', coords[i]);
       }
     }]);
+
+    spooky.run();
+
   });
 
   spooky.on('console', function (line) {
