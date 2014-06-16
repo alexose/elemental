@@ -39,12 +39,20 @@ wss.on('connection', function(ws){
 
             // Send metadata first
             if (first){
-                ws.send(data);
+                try {
+                  ws.send(data);
+                } catch(e){
+
+                }
                 first = false;
             }
 
             // Send image data
-            ws.send(chunk);
+            try {
+              ws.send(chunk);
+            } catch(e){
+
+            }
 
             chunk = data.substr(pos + 1, data.length);
         }
@@ -53,6 +61,8 @@ wss.on('connection', function(ws){
     child.on('exit', function (code) {
       console.log('child process exited with code ' + code);
     });
+
+
   });
 });
 
