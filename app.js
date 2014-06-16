@@ -1,109 +1,93 @@
-var mongodb = require('mongodb')
-  , Spooky = require('spooky');
+/* jshint laxcomma:true */
 
+// Process arguments
 var args = process.argv || [];
 
-if (args.length < 3 || args.length > 4){
-  console.log('Usage: ' + args[0] + ' <url>');
+if (args.length < 2 || args.length > 5){
+  console.log('Usage: ' + args[0] + '[http port] [websocket port]');
   process.exit();
 }
 
-var url = args[2];
+// Open websocket to connections
+var ports = {
+  http:   args[2] || 80,
+  socket: args[3] || 8080
+};
 
-// Attempt to connect to Mongo
-mongodb.MongoClient.connect('mongodb://127.0.0.1:27017/elemental', function(err, db){
-  if (err) {
-    e = new Error('Failed to initialize Mongo');
-    e.details = err;
-    throw e;
-  } else {
-    init(db);
-  }
-});
+var WebSocketServer = require('ws').Server
+  , wss = new WebSocketServer({ port: ports.socket });
 
-function init(db){
+wss.on('connection', function(ws){
 
-  // Attempt to Fire up Spooky
-  try {
-    var spooky = new Spooky({
-        child: {
-          transport: 'http'
-        },
-        casper: {
-          logLevel: 'debug',
-          verbose: true
-        }
-      }, function(err){
-        if (err) {
-          display(err);
-        }
+  ws.on('message', function crawl(url){
 
-        crawl(spooky);
-      });
-  } catch(e){
-    console.log('hello');
-    display(e);
-  }
+    // Spawn phantomjs and stream results back
+    var spawn = require('child_process').spawn
+      , child = spawn('phantomjs', ['./capture.js', url]);
 
-  function display(err){
-    e = new Error('Failed to initialize SpookyJS');
-    e.details = err;
-    throw e;
-  }
-
-}
-
-function crawl(spooky){
-
-  spooky.start(url);
-
-  spooky.then(function(){
-
-      this.emit('coords', this.evaluate(subdivide));
-
-      // Breaks a document down into pieces and returns a array of coordinates
-      function subdivide(){
-
-        var all    = document.getElementsByTagName("*"),
-            coords = [];
-
-        for (var i=0, max=all.length; i < max; i++) {
-          var rect = all[i].getBoundingClientRect();
-
-          if (rect.height && rect.width){
-            coords.push(rect);
-          }
-        }
-        return coords;
-      }
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', function(data) {
+      ws.send(data);
     });
 
-  spooky.on('coords', function(coords){
-
-    spooky.start();
-
-    spooky.then([{ coords: coords }, function(){
-      for (var i in coords){
-        spooky.capture('output/image-' + i + '.png', coords[i]);
-      }
-    }]);
-
-    spooky.run();
-
+    child.on('exit', function (code) {
+      console.log('child process exited with code ' + code);
+    });
   });
+});
 
-  spooky.on('console', function (line) {
-    console.log(line);
-  });
 
-  spooky.on('error', function(e, stack){
-    console.error(e);
+// Serve public http
+var http = require('http')
+  , url  = require('url')
+  , path = require('path')
+  , fs   = require('fs');
 
-    if (stack) {
-      console.log(stack);
+http.createServer(function(request, response){
+
+  var uri = url.parse(request.url).pathname
+    , filename = path.join(process.cwd(), 'public/' + uri);
+
+  fs.exists(filename, function(exists) {
+    if(!exists) {
+      respond('Resource not found.', 'text/plain', 404);
+      return;
     }
+
+    if (fs.statSync(filename).isDirectory()) {
+      filename += '/index.html';
+    }
+
+    fs.readFile(filename, "binary", function(err, file) {
+      if(err) {
+        respond('Error: ' + err + '.', 'text/plain', 500);
+        return;
+      }
+
+      var host = request.headers.host.split(':')[0];
+
+      // Replace template stuff
+      file = file.replace('{{server}}', host);
+      file = file.replace('{{port}}', ports.socket);
+
+      respond(file, 'text/html', 200);
+    });
   });
 
-  spooky.run();
+  function respond(string, type, code){
 
-}
+    var origin = "http://alexose.github.io";
+
+    type = type || "text/html";
+    code = code || 200;
+
+    response.writeHead(code, {
+      "Content-Type": type,
+      "Access-Control-Allow-Origin": origin
+    });
+    response.write(string);
+    response.end();
+  }
+
+}).listen(ports.http);
+

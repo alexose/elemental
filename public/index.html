@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>Elemental</title>
+</head>
+<body>
+  <form action="/url">
+    <input name="url" value="http://news.google.com" size="80" />
+    <input type="submit" />
+  </form>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js" ></script>
+<script>
+
+// Set up websocket
+var ws = new WebSocket('ws://{{server}}:{{port}}');
+
+ws.onopen = function(){
+  console.log('Connected to websocket.');
+}
+
+ws.onmessage = function(evt){
+  $('<img />')
+    .attr('src', 'data:image/png;base64,' + evt.data)
+    .appendTo('body');
+};
+
+// Set up input box behavior
+$('form').submit(function(e){
+
+  e.preventDefault();
+
+  var url = $(this).find('[name="url"]').val();
+
+  ws.send(url);
+  return false;
+});
+
+
+</script>
+</body>
+
+</html>
+

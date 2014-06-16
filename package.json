@@ -10,7 +10,7 @@
     "url": "git@github.com:alexose/elemental.git"
   },
   "dependencies": {
-    "mongodb": "^1.4.5",
-    "spooky": "^0.2.4"
+    "ws": "~0.4.31",
+    "node-static": "~0.7.3"
   }
 }
