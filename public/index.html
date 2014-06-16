@@ -16,6 +16,7 @@
   </form>
 
   <p id="status"></p>
+  <div id="container"></div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js" ></script>
 <script>
@@ -34,18 +35,23 @@ ws.onmessage = function(evt){
     if (typeof(count) === 'undefined'){
         count = evt.data;
         updateStatus(count);
+    } else if (count === 0){
+
+      // Done!
+      updateStatus(0);
+
     } else {
         var img = $('<img />')
           .attr('src', 'data:image/png;base64,' + evt.data)
           .hide()
-          .appendTo('body');
+          .appendTo('#container');
 
         updateStatus(count--);
 
         var width = img.width();
         img.width(width);
 
-         $('img:visible').each(function(){
+         $('#container img:visible').each(function(){
             var ele = $(this)
                 next = ele.next();
 
@@ -70,6 +76,10 @@ function updateStatus(count){
 
 // Set up input box behavior
 $('form').submit(function(e){
+
+  $('#container img').remove();
+  minWidth = Infinity;
+  count    = undefined;
 
   e.preventDefault();
 
