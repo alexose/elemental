@@ -1,0 +1,21 @@
+body {
+  background: #333;
+  color: #fff;
+}
+
+input {
+  padding: 15px 30px;
+  background: #222;
+  border: 0;
+  color: #bbb;
+  font-size: 24px;
+  box-shadow: inset 1 4 10px rgba(0,0,0,0.5);
+}
+
+input[type="text"]{
+  width: 500px;
+}
+
+img {
+  border: 10px solid #000;
+}
