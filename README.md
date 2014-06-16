@@ -3,13 +3,15 @@ Elemental
 
 Quickly audit every element on a page.
 
-Elemental first renders a page, then proceeds to split it into roughly equal-sized elements.  A screenshot of each element, its underlying HTML, and computed styles are then recorded into a database.  Finally, these images are loaded and arranged by visual similarity.
+Elemental renders every element on a page to a PNG base64 string, streams the results back via websocket, and sorts by visual similarity.
 
-INSTALLATION
+Try a live demo at http://elemental.alexose.com
 
-You'll need to install casperjs globally with npm:
+## Installation
 
-    npm install -g casperjs
+You'll need to install phantomjs (>1.9.0) globally with npm:
+
+    npm install -g phantomjs
 
 And then install:
 
