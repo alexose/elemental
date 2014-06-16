@@ -1,4 +1,4 @@
-var system = require('system');
+var system = require('system')
 
 if (system.args.length < 2 || system.args.length > 3){
     console.log('Usage: ' + system.args[0] + ' <url>');
@@ -12,13 +12,15 @@ page.open(url, function (status) {
     if (status !== 'success') {
         console.log('Unable to access the network!');
     } else {
+
         var coords = page.evaluate(find);
+
+        system.stdout.write(coords.length + '\n');
 
         for (var i in coords){
           page.clipRect = coords[i];
           var base64 = page.renderBase64('PNG');
-          console.log(base64);
-          break;
+          system.stdout.write(base64 + '\n');
         }
     }
     phantom.exit();

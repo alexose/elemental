@@ -26,8 +26,28 @@ wss.on('connection', function(ws){
       , child = spawn('phantomjs', ['./capture.js', url]);
 
     child.stdout.setEncoding('utf8');
-    child.stdout.on('data', function(data) {
-      ws.send(data);
+
+    var chunk = '';
+    var first = true;
+    child.stdout.on('data', function(data){
+
+        var pos = data.indexOf('\n');
+        if (pos == -1){
+            chunk += data;
+        } else {
+            chunk += data.substring(0, pos);
+
+            // Send metadata first
+            if (first){
+                ws.send(data);
+                first = false;
+            }
+
+            // Send image data
+            ws.send(chunk);
+
+            chunk = data.substr(pos + 1, data.length);
+        }
     });
 
     child.on('exit', function (code) {

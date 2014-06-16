@@ -4,10 +4,11 @@
 </head>
 <body>
   <form action="/url">
-    <input name="url" value="http://news.google.com" size="80" />
+    <input name="url" value="http://google.com" size="80" />
     <input type="submit" />
   </form>
 
+  <p id="status"></p>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js" ></script>
 <script>
@@ -19,11 +20,25 @@ ws.onopen = function(){
   console.log('Connected to websocket.');
 }
 
+var count;
 ws.onmessage = function(evt){
-  $('<img />')
-    .attr('src', 'data:image/png;base64,' + evt.data)
-    .appendTo('body');
+
+    if (typeof(count) === 'undefined'){
+        count = evt.data;
+        updateStatus(count);
+    } else {
+        $('<img />')
+          .attr('src', 'data:image/png;base64,' + evt.data)
+          .appendTo('body');
+
+         updateStatus(count--);
+    }
 };
+
+function updateStatus(count){
+    $('#status')
+        .text('Streaming ' + count + ' results.');
+}
 
 // Set up input box behavior
 $('form').submit(function(e){
