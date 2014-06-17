@@ -12,20 +12,22 @@ page.open(url, function (status) {
     if (status !== 'success') {
         console.log('Unable to access the network!');
     } else {
-
         var coords = page.evaluate(find);
-
         system.stdout.write(JSON.stringify({
           total : coords.length
         }) + '\n');
 
-        for (var i in coords){
-          page.clipRect = coords[i];
+        coords.forEach(function(d,i){
+
+          console.log(d.rect.width);
+
           var base64 = page.renderBase64('PNG');
+          page.clipRect = d.rect;
           system.stdout.write(JSON.stringify({
+            tag  : d.tag,
             data : base64
           }) + '\n');
-        }
+        });
     }
     phantom.exit();
 });
@@ -35,10 +37,15 @@ function find(){
         coords = [];
 
     for (var i=0, max=all.length; i < max; i++) {
-        var rect = all[i].getBoundingClientRect();
+        var ele = all[i],
+            rect = ele.getBoundingClientRect(),
+            tag = ele.tagName;
 
         if (rect.height && rect.width){
-            coords.push(rect);
+            coords.push({
+              tag  : tag,
+              rect : rect
+            });
         }
     }
 
@@ -48,10 +55,13 @@ function find(){
     return coords;
 
     function sortFunc(a,b){
-        if (a.width > b.width){
+        var w1 = a.rect.width,
+            w2 = b.rect.width;
+
+        if (w1 > w2){
             return 1;
         }
-        if (a.width < b.width){
+        if (w1 < w2){
             return -1;
         }
         return 0;
