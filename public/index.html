@@ -26,40 +26,25 @@ var count;
 var minWidth = Infinity;
 ws.onmessage = function(evt){
 
-    if (typeof(count) === 'undefined'){
-        count = evt.data;
+    var obj;
+    try {
+      obj = JSON.parse(evt.data);
+    } catch(e){
+      console.log('Had trouble decoding string: ' + evt.data);
+      return;
+    }
+
+    if (obj.total){
+        count = obj.total;
         updateStatus(count);
-    } else if (count === 0){
+    }
 
-      // Done!
-      updateStatus(0);
+    if (obj.data){
+      var img = $('<img />')
+        .attr('src', 'data:image/png;base64,' + obj.data)
+        .appendTo('#container');
 
-    } else {
-        var img = $('<img />')
-          .attr('src', 'data:image/png;base64,' + evt.data)
-          .hide()
-          .appendTo('#container');
-
-        updateStatus(count--);
-
-        var width = img.width();
-        img.width(width);
-
-         $('#container img:visible').each(function(){
-            var ele = $(this)
-                next = ele.next();
-
-            if (width < minWidth){
-                minWidth = width;
-                ele.before(img);
-            }
-
-            if (width >= ele.width() && width <= next.width()){
-              ele.after(img);
-            }
-         });
-
-         img.show();
+      updateStatus(count--);
     }
 };
 

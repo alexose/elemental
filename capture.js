@@ -15,17 +15,20 @@ page.open(url, function (status) {
 
         var coords = page.evaluate(find);
 
-        system.stdout.write(coords.length + '\n');
+        system.stdout.write(JSON.stringify({
+          total : coords.length
+        }) + '\n');
 
         for (var i in coords){
           page.clipRect = coords[i];
           var base64 = page.renderBase64('PNG');
-          system.stdout.write(base64 + '\n');
+          system.stdout.write(JSON.stringify({
+            data : base64
+          }) + '\n');
         }
     }
     phantom.exit();
 });
-
 
 function find(){
     var all    = document.getElementsByTagName("*"),
@@ -39,5 +42,19 @@ function find(){
         }
     }
 
+    // Sort by width
+    coords.sort(sortFunc);
+
     return coords;
+
+    function sortFunc(a,b){
+        if (a.width > b.width){
+            return 1;
+        }
+        if (a.width < b.width){
+            return -1;
+        }
+        return 0;
+    }
 }
+

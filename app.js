@@ -37,16 +37,6 @@ wss.on('connection', function(ws){
         } else {
             chunk += data.substring(0, pos);
 
-            // Send metadata first
-            if (first){
-                try {
-                  ws.send(data);
-                } catch(e){
-
-                }
-                first = false;
-            }
-
             // Send image data
             try {
               ws.send(chunk);
